@@ -15,9 +15,15 @@ info()  { echo -e "${GREEN}==>${NC} $1"; }
 warn()  { echo -e "${YELLOW}==>${NC} $1"; }
 error() { echo -e "${RED}Error:${NC} $1"; exit 1; }
 
+# Auth header for GitHub API (avoids rate limiting)
+AUTH_HEADER=()
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+  AUTH_HEADER=(-H "Authorization: token ${GITHUB_TOKEN}")
+fi
+
 # 1. Get latest release
 info "Fetching latest release..."
-RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest")
+RELEASE_JSON=$(curl -fsSL "${AUTH_HEADER[@]+"${AUTH_HEADER[@]}"}" "https://api.github.com/repos/${REPO}/releases/latest")
 VERSION=$(echo "$RELEASE_JSON" | grep '"tag_name"' | head -1 | sed 's/.*: "//;s/".*//')
 DMG_URL=$(echo "$RELEASE_JSON" | grep '"browser_download_url".*\.dmg"' | head -1 | sed 's/.*: "//;s/".*//')
 
